@@ -1,13 +1,17 @@
 name: Amazon Price Tracker
 
 on:
-  workflow_dispatch:      # This adds the manual "Run" button
+  workflow_dispatch:      # Allows you to click "Run" manually
   schedule:
-    - cron: '0 12 * * *' # This runs it automatically every day at noon
+    - cron: '0 12 * * *' # Runs every day at 12:00 PM UTC
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    # Added permissions so the bot can push the 'last_price.txt' back to your repo
+    permissions:
+      contents: write
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,17 +23,19 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install requests playwright
           python -m playwright install chromium --with-deps
 
       - name: Run Scraper
         env:
-          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }} # This pulls from your GitHub Secrets
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         run: python scraper.py
-        
-      - name: Upload Debug Screenshot
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-screenshot
-          path: amazon_result.png
+
+      - name: Save Price History
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          git add last_price.txt
+          # The '|| exit 0' prevents the action from failing if the price didn't change
+          git commit -m "Update last_price.txt with latest price" || exit 0
+          git push
