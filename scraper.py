@@ -9,7 +9,7 @@ WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 def run():
     with sync_playwright() as p:
         # Launching a standard browser
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         
         # We still use a User-Agent so we don't identify as 'HeadlessChrome'
         context = browser.new_context(
