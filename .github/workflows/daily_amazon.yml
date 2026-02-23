@@ -1,0 +1,35 @@
+name: Amazon Price Tracker
+
+on:
+  workflow_dispatch:      # This adds the manual "Run" button
+  schedule:
+    - cron: '0 12 * * *' # This runs it automatically every day at noon
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install chromium --with-deps
+
+      - name: Run Scraper
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }} # This pulls from your GitHub Secrets
+        run: python scraper.py
+        
+      - name: Upload Debug Screenshot
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshot
+          path: amazon_result.png
