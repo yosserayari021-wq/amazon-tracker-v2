@@ -35,8 +35,8 @@ jobs:
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
-          git add price_*.txt # Adds all individual price files
-          git commit -m "Update prices for wishlist" || exit 0
+          git add price_history.csv last_*.txt  # <--- Update this line
+          git commit -m "Update price history [skip ci]" || echo "No changes to commit"
           git push
       - name: Upload Debug Screenshot
         if: failure()
